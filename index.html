@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f1;
+    --surface: #ffffff;
+    --surface2: #f0eeea;
+    --border: #e2ddd7;
+    --accent: #1c1c1c;
+    --red: #b83232;
+    --text: #1c1c1c;
+    --muted: #9b938a;
+    --tag-not-bg: #eeebe6; --tag-not-fg: #8a8078; --tag-not-bd: #ddd8d0;
+    --tag-in-bg:  #e6f0e8; --tag-in-fg:  #2d6e35; --tag-in-bd:  #b8d9bc;
+    --tag-wait-bg:#fdf5e0; --tag-wait-fg:#7a5f00; --tag-wait-bd:#e8d98a;
+    --tag-done-bg:#eceaf5; --tag-done-fg:#42428a; --tag-done-bd:#c0bde0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 58px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: 0.1px;
+    color: var(--text);
+  }
+
+  .logo-divider {
+    width: 1px; height: 16px;
+    background: var(--border);
+  }
+
+  .logo-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 400;
+    letter-spacing: 0.1px;
+  }
+
+  .header-actions { display: flex; gap: 8px; }
+
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    transition: all 0.15s;
+    letter-spacing: 0.1px;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); background: var(--surface2); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  .btn-primary:hover { background: #2e2e2e; border-color: #2e2e2e; }
+
+  .btn-danger { color: var(--red); border-color: #e2c4c4; }
+  .btn-danger:hover { background: #fdf0f0; border-color: #e2c4c4; color: var(--red); }
+
+  /* ── LAYOUT ── */
+  .main { display: flex; height: calc(100vh - 58px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 210px;
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    flex-shrink: 0;
+    overflow-y: auto;
+    background: var(--surface);
+  }
+
+  .sidebar-section { padding: 0 14px; margin-bottom: 24px; }
+
+  .sidebar-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    padding: 0 6px;
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 9px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #8a8278;
+    font-size: 13px;
+    font-weight: 400;
+    transition: all 0.12s;
+    border: 1px solid transparent;
+    user-select: none;
+  }
+
+  .sidebar-item:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-item.active { background: var(--surface2); color: var(--accent); border-color: var(--border); font-weight: 500; }
+
+  .sidebar-item .icon { font-size: 12px; width: 15px; text-align: center; flex-shrink: 0; opacity: 0.7; }
+
+  .badge {
+    margin-left: auto;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 10px;
+    color: var(--muted);
+    min-width: 22px;
+    text-align: center;
+  }
+
+  /* ── CONTENT ── */
+  .content { flex: 1; overflow-y: auto; padding: 30px 34px; }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 3px;
+    letter-spacing: 0.1px;
+    color: var(--text);
+  }
+
+  .page-sub {
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-bottom: 24px;
+    font-weight: 400;
+  }
+
+  /* ── STATS ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .stat-value.green { color: #2d6e35; }
+  .stat-value.red   { color: var(--red); }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .toolbar-left { display: flex; gap: 5px; flex-wrap: wrap; }
+
+  .filter-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 13px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    transition: all 0.12s;
+    user-select: none;
+  }
+
+  .filter-btn.active, .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--surface2);
+  }
+
+  .search-wrap { position: relative; }
+
+  .search-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 12px 7px 30px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    width: 190px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .search-input:focus { border-color: #aaa; }
+  .search-input::placeholder { color: var(--muted); }
+
+  .search-icon {
+    position: absolute;
+    left: 10px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 13px;
+    pointer-events: none;
+  }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .table-head {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr 0.85fr 1.05fr 1.2fr 0.8fr;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .th {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .table-row {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr 0.85fr 1.05fr 1.2fr 0.8fr;
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+
+  .table-row:last-child { border-bottom: none; }
+  .table-row:hover { background: var(--surface2); }
+
+  .proj-name {
+    font-weight: 500;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--text);
+  }
+
+  .proj-emoji { font-size: 15px; flex-shrink: 0; }
+
+  .status-tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    width: fit-content;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    letter-spacing: 0.1px;
+  }
+
+  .status-tag.not-started { background: var(--tag-not-bg); color: var(--tag-not-fg); border-color: var(--tag-not-bd); }
+  .status-tag.in-progress { background: var(--tag-in-bg);  color: var(--tag-in-fg);  border-color: var(--tag-in-bd); }
+  .status-tag.waiting     { background: var(--tag-wait-bg); color: var(--tag-wait-fg); border-color: var(--tag-wait-bd); }
+  .status-tag.done        { background: var(--tag-done-bg); color: var(--tag-done-fg); border-color: var(--tag-done-bd); }
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  .priority-tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 4px;
+    width: fit-content;
+    white-space: nowrap;
+  }
+
+  .priority-tag.high   { background: #fdecea; color: #b83232; }
+  .priority-tag.medium { background: #fdf5e0; color: #7a5f00; }
+  .priority-tag.low    { background: var(--surface2); color: #aaa; }
+
+  .dl { font-size: 12px; color: var(--muted); }
+  .dl.overdue { color: var(--red); font-weight: 500; }
+  .dl.soon    { color: #7a5f00; }
+
+  .next-act {
+    font-size: 12px;
+    color: #8a8278;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 10px;
+  }
+
+  .prog-wrap { display: flex; align-items: center; gap: 8px; }
+  .prog-bar  { height: 4px; background: var(--border); border-radius: 2px; flex: 1; overflow: hidden; }
+  .prog-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+  .prog-pct  { font-size: 11px; font-weight: 500; color: var(--muted); width: 28px; text-align: right; flex-shrink: 0; }
+
+  .add-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 20px;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13px;
+    transition: all 0.12s;
+  }
+
+  .add-row:hover { background: var(--surface2); color: var(--accent); }
+
+  /* ── EMPTY ── */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-icon  { font-size: 32px; margin-bottom: 10px; }
+  .empty-text  { font-size: 13px; }
+
+  /* ── DETAIL PANEL ── */
+  .detail-panel {
+    width: 0;
+    border-left: 1px solid var(--border);
+    overflow: hidden;
+    transition: width 0.22s ease;
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+
+  .detail-panel.open { width: 295px; }
+  .detail-inner { width: 295px; padding: 24px; height: 100%; overflow-y: auto; }
+
+  .detail-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+  .detail-emoji { font-size: 28px; line-height: 1; }
+
+  .detail-close {
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 16px; padding: 2px;
+    line-height: 1; transition: color 0.1s;
+  }
+
+  .detail-close:hover { color: var(--text); }
+
+  .detail-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    line-height: 1.35;
+    color: var(--text);
+  }
+
+  .detail-field { margin-bottom: 13px; padding-bottom: 13px; border-bottom: 1px solid var(--border); }
+  .detail-field:last-of-type { border-bottom: none; }
+
+  .detail-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+
+  .detail-value { font-size: 13px; color: var(--text); line-height: 1.5; }
+  .detail-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+  /* ── MODAL ── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.28);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.18s;
+  }
+
+  .overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 490px; max-height: 84vh;
+    overflow-y: auto; padding: 26px;
+    transform: translateY(14px);
+    transition: transform 0.2s;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+  }
+
+  .overlay.open .modal { transform: translateY(0); }
+
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    color: var(--text);
+  }
+
+  .modal-close {
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    font-size: 16px; line-height: 1;
+    transition: color 0.1s;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  .form-group { margin-bottom: 15px; }
+
+  .form-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #aaa; }
+  .form-select option { background: var(--surface); }
+  .form-textarea { resize: vertical; min-height: 68px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .range-wrap { display: flex; align-items: center; gap: 10px; }
+  .range-input { flex: 1; accent-color: var(--accent); cursor: pointer; }
+  .range-val { font-size: 12px; font-weight: 500; color: var(--text); width: 32px; text-align: right; }
+
+  .modal-footer { display: flex; gap: 8px; margin-top: 8px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--accent);
+    border-radius: 6px; padding: 10px 16px;
+    font-size: 12px; font-weight: 500; color: #fff;
+    z-index: 9999; pointer-events: none;
+    transform: translateY(60px); opacity: 0;
+    transition: all 0.22s;
+    letter-spacing: 0.1px;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <span class="logo-name">Project Manager</span>
+    <div class="logo-divider"></div>
+    <span class="logo-sub">Your work, tracked</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn" onclick="exportCSV()">Export CSV</button>
+    <button class="btn-primary btn" onclick="openModal()">+ New Project</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Views</div>
+      <div class="sidebar-item active" onclick="setSidebar('all',this)">
+        <span class="icon">▤</span> All Projects <span class="badge" id="b-all">0</span>
+      </div>
+      <div class="sidebar-item" onclick="setSidebar('in-progress',this)">
+        <span class="icon">◉</span> In Progress <span class="badge" id="b-in">0</span>
+      </div>
+      <div class="sidebar-item" onclick="setSidebar('waiting',this)">
+        <span class="icon">◌</span> Waiting <span class="badge" id="b-wait">0</span>
+      </div>
+      <div class="sidebar-item" onclick="setSidebar('done',this)">
+        <span class="icon">✓</span> Done <span class="badge" id="b-done">0</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Focus</div>
+      <div class="sidebar-item" onclick="setSidebar('high',this)">
+        <span class="icon">↑</span> High Priority <span class="badge" id="b-high">0</span>
+      </div>
+      <div class="sidebar-item" onclick="setSidebar('overdue',this)">
+        <span class="icon">!</span> Overdue <span class="badge" id="b-od">0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-title" id="pg-title">All Projects</div>
+    <div class="page-sub" id="pg-sub">Your single source of truth. No more chaos.</div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total</div>
+        <div class="stat-value" id="s-total">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">In Progress</div>
+        <div class="stat-value green" id="s-in">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value" id="s-done">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Overdue</div>
+        <div class="stat-value red" id="s-od">0</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <button class="filter-btn active" onclick="setTab('all',this)">All</button>
+        <button class="filter-btn" onclick="setTab('not-started',this)">Not Started</button>
+        <button class="filter-btn" onclick="setTab('in-progress',this)">In Progress</button>
+        <button class="filter-btn" onclick="setTab('waiting',this)">Waiting</button>
+        <button class="filter-btn" onclick="setTab('done',this)">Done</button>
+      </div>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" type="text" placeholder="Search projects…" oninput="onSearch(this.value)">
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-head">
+        <div class="th">Project</div>
+        <div class="th">Status</div>
+        <div class="th">Priority</div>
+        <div class="th">Deadline</div>
+        <div class="th">Next Action</div>
+        <div class="th">Progress</div>
+      </div>
+      <div id="tbody"></div>
+      <div class="add-row" onclick="openModal()">
+        <span style="font-size:16px;line-height:1;font-weight:300">+</span> Add project
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-panel" id="dp">
+    <div class="detail-inner" id="di"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="m-heading">New Project</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Project Name *</label>
+      <input class="form-input" id="f-name" type="text" placeholder="e.g. Q3 Campaign Launch">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Emoji</label>
+        <input class="form-input" id="f-emoji" type="text" placeholder="📋" maxlength="2">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="f-status">
+          <option value="not-started">Not Started</option>
+          <option value="in-progress">In Progress</option>
+          <option value="waiting">Waiting</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select class="form-select" id="f-priority">
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deadline</label>
+        <input class="form-input" id="f-deadline" type="date">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Stakeholder / Owner</label>
+      <input class="form-input" id="f-stakeholder" type="text" placeholder="e.g. Reporting to: Manager name">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Next Action</label>
+      <input class="form-input" id="f-next" type="text" placeholder="e.g. Send brief to design team by Friday">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea class="form-textarea" id="f-notes" placeholder="Background, blockers, context…"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Progress — <span id="pdisplay">0</span>%</label>
+      <div class="range-wrap">
+        <input class="range-input" id="f-progress" type="range" min="0" max="100" value="0"
+          oninput="document.getElementById('pdisplay').textContent=this.value;document.getElementById('pval').textContent=this.value+'%'">
+        <span class="range-val" id="pval">0%</span>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()" style="flex:1">Cancel</button>
+      <button class="btn-primary btn" onclick="saveProject()" style="flex:2" id="save-btn">Add Project</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const META = {
+    all:           ['All Projects',   'Your single source of truth. No more chaos.'],
+    'in-progress': ['In Progress',    'Everything currently active.'],
+    waiting:       ['Waiting',        'Blocked or pending someone else.'],
+    done:          ['Done',           'Shipped. Closed. Celebrated.'],
+    high:          ['High Priority',  'The ones that matter right now.'],
+    overdue:       ['Overdue',        'These need your attention today.'],
+  };
+
+  let projects = JSON.parse(localStorage.getItem('pm_v3') || 'null');
+  let sF='all', tF='all', sq='', editId=null, detailId=null;
+
+  if (!projects) {
+    projects = [
+      { id:1, name:'Annual Marketing Strategy Deck', emoji:'📊', status:'in-progress', priority:'high',
+        deadline:'2026-05-20', stakeholder:'Reporting to: Head of Marketing',
+        next:'Complete competitor analysis section',
+        notes:'Needs sign-off before board presentation', progress:55 },
+      { id:2, name:'Website Redesign', emoji:'💻', status:'waiting', priority:'high',
+        deadline:'2026-06-15', stakeholder:'Waiting on: Dev team handoff',
+        next:'Follow up with dev lead on timeline',
+        notes:'Design approved. Dev scoping in progress.', progress:40 },
+      { id:3, name:'Employee Onboarding Revamp', emoji:'🗂️', status:'in-progress', priority:'medium',
+        deadline:'2026-05-30', stakeholder:'Owner: HR & L&D team',
+        next:'Review updated onboarding deck draft',
+        notes:'Targeting new joiners from June batch', progress:70 },
+      { id:4, name:'Q3 Performance Review Prep', emoji:'📋', status:'not-started', priority:'medium',
+        deadline:'2026-07-01', stakeholder:'Self-owned',
+        next:'Start logging wins and contributions',
+        notes:'Pull data from tracker before review cycle opens', progress:0 },
+      { id:5, name:'Internal Newsletter Launch', emoji:'📨', status:'done', priority:'low',
+        deadline:'2026-04-05', stakeholder:'Comms team',
+        next:'—', notes:'First edition sent. 78% open rate.', progress:100 },
+    ];
+    persist();
+  }
+
+  function persist() { localStorage.setItem('pm_v3', JSON.stringify(projects)); render(); }
+
+  function sLabel(s) {
+    return {'not-started':'Not Started','in-progress':'In Progress',waiting:'Waiting',done:'Done'}[s]||s;
+  }
+
+  function fDate(d) {
+    if (!d) return '—';
+    return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'});
+  }
+
+  function isOD(p)   { return p.deadline && new Date(p.deadline+'T00:00:00') < new Date() && p.status!=='done'; }
+  function isSoon(p) {
+    if (!p.deadline || p.status==='done') return false;
+    return (new Date(p.deadline+'T00:00:00')-new Date())/86400000 <= 3;
+  }
+
+  function getVisible() {
+    let l=[...projects];
+    if (sF==='in-progress') l=l.filter(p=>p.status==='in-progress');
+    else if (sF==='waiting') l=l.filter(p=>p.status==='waiting');
+    else if (sF==='done')    l=l.filter(p=>p.status==='done');
+    else if (sF==='high')    l=l.filter(p=>p.priority==='high');
+    else if (sF==='overdue') l=l.filter(p=>isOD(p));
+    if (sF==='all' && tF!=='all') l=l.filter(p=>p.status===tF);
+    if (sq) {
+      const q=sq.toLowerCase();
+      l=l.filter(p=>[p.name,p.next||'',p.stakeholder||''].join(' ').toLowerCase().includes(q));
+    }
+    return l;
+  }
+
+  function render() {
+    const all=projects, od=all.filter(p=>isOD(p)).length;
+    ['s-total','s-in','s-done','s-od'].forEach((id,i)=>{
+      document.getElementById(id).textContent=[
+        all.length,
+        all.filter(p=>p.status==='in-progress').length,
+        all.filter(p=>p.status==='done').length,
+        od
+      ][i];
+    });
+    document.getElementById('b-all').textContent  = all.length;
+    document.getElementById('b-in').textContent   = all.filter(p=>p.status==='in-progress').length;
+    document.getElementById('b-wait').textContent = all.filter(p=>p.status==='waiting').length;
+    document.getElementById('b-done').textContent = all.filter(p=>p.status==='done').length;
+    document.getElementById('b-high').textContent = all.filter(p=>p.priority==='high').length;
+    document.getElementById('b-od').textContent   = od;
+
+    const vis=getVisible(), body=document.getElementById('tbody');
+    if (!vis.length) {
+      body.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">No projects found.</div></div>`;
+      return;
+    }
+    body.innerHTML=vis.map(p=>{
+      const od2=isOD(p), soon=isSoon(p);
+      return `<div class="table-row" onclick="openDetail(${p.id})">
+        <div class="proj-name"><span class="proj-emoji">${p.emoji||'📋'}</span>${p.name}</div>
+        <div><span class="status-tag ${p.status}"><span class="status-dot"></span>${sLabel(p.status)}</span></div>
+        <div><span class="priority-tag ${p.priority}">${p.priority[0].toUpperCase()+p.priority.slice(1)}</span></div>
+        <div class="dl${od2?' overdue':soon?' soon':''}">${fDate(p.deadline)}${od2?' ⚠':''}</div>
+        <div class="next-act">${p.next||'—'}</div>
+        <div class="prog-wrap">
+          <div class="prog-bar"><div class="prog-fill" style="width:${p.progress||0}%"></div></div>
+          <span class="prog-pct">${p.progress||0}%</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function openDetail(id) {
+    const p=projects.find(x=>x.id===id); if(!p) return;
+    detailId=id;
+    const od=isOD(p);
+    document.getElementById('di').innerHTML=`
+      <div class="detail-top">
+        <span class="detail-emoji">${p.emoji||'📋'}</span>
+        <button class="detail-close" onclick="closeDetail()">✕</button>
+      </div>
+      <div class="detail-name">${p.name}</div>
+      <div class="detail-field">
+        <div class="detail-label">Status</div>
+        <span class="status-tag ${p.status}"><span class="status-dot"></span>${sLabel(p.status)}</span>
+      </div>
+      <div class="detail-field">
+        <div class="detail-label">Priority</div>
+        <span class="priority-tag ${p.priority}">${p.priority[0].toUpperCase()+p.priority.slice(1)}</span>
+      </div>
+      <div class="detail-field">
+        <div class="detail-label">Deadline</div>
+        <div class="detail-value dl${od?' overdue':''}">${fDate(p.deadline)}${od?' — Overdue':''}</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-label">Stakeholder / Owner</div>
+        <div class="detail-value">${p.stakeholder||'—'}</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-label">Next Action</div>
+        <div class="detail-value">${p.next||'—'}</div>
+      </div>
+      ${p.notes?`<div class="detail-field"><div class="detail-label">Notes</div><div class="detail-value" style="color:var(--muted);font-size:12px;">${p.notes}</div></div>`:''}
+      <div class="detail-field">
+        <div class="detail-label">Progress</div>
+        <div style="margin-top:7px;">
+          <div class="prog-bar" style="height:5px;"><div class="prog-fill" style="width:${p.progress||0}%"></div></div>
+          <div style="font-size:11px;font-weight:500;color:var(--muted);margin-top:6px;">${p.progress||0}% complete</div>
+        </div>
+      </div>
+      <div class="detail-actions">
+        <button class="btn" style="flex:1" onclick="editP(${p.id})">Edit</button>
+        <button class="btn btn-danger" style="flex:1" onclick="delP(${p.id})">Delete</button>
+      </div>`;
+    document.getElementById('dp').classList.add('open');
+  }
+
+  function closeDetail() { document.getElementById('dp').classList.remove('open'); detailId=null; }
+
+  function openModal(id=null) {
+    editId=id;
+    document.getElementById('m-heading').textContent = id?'Edit Project':'New Project';
+    document.getElementById('save-btn').textContent  = id?'Save Changes':'Add Project';
+    if (id) {
+      const p=projects.find(x=>x.id===id);
+      document.getElementById('f-name').value        = p.name;
+      document.getElementById('f-emoji').value       = p.emoji||'';
+      document.getElementById('f-status').value      = p.status;
+      document.getElementById('f-priority').value    = p.priority;
+      document.getElementById('f-deadline').value    = p.deadline||'';
+      document.getElementById('f-stakeholder').value = p.stakeholder||'';
+      document.getElementById('f-next').value        = p.next||'';
+      document.getElementById('f-notes').value       = p.notes||'';
+      document.getElementById('f-progress').value    = p.progress||0;
+      document.getElementById('pdisplay').textContent= p.progress||0;
+      document.getElementById('pval').textContent    = (p.progress||0)+'%';
+    } else {
+      ['f-name','f-emoji','f-stakeholder','f-next','f-notes'].forEach(i=>document.getElementById(i).value='');
+      document.getElementById('f-status').value  = 'not-started';
+      document.getElementById('f-priority').value= 'medium';
+      document.getElementById('f-deadline').value= '';
+      document.getElementById('f-progress').value= 0;
+      document.getElementById('pdisplay').textContent='0';
+      document.getElementById('pval').textContent='0%';
+    }
+    document.getElementById('overlay').classList.add('open');
+    setTimeout(()=>document.getElementById('f-name').focus(),60);
+  }
+
+  function closeModal() { document.getElementById('overlay').classList.remove('open'); editId=null; }
+  function overlayClick(e) { if(e.target.id==='overlay') closeModal(); }
+
+  function saveProject() {
+    const name=document.getElementById('f-name').value.trim();
+    if (!name) { toast('Please enter a project name'); return; }
+    const d={
+      name, emoji:document.getElementById('f-emoji').value.trim()||'📋',
+      status:document.getElementById('f-status').value,
+      priority:document.getElementById('f-priority').value,
+      deadline:document.getElementById('f-deadline').value,
+      stakeholder:document.getElementById('f-stakeholder').value.trim(),
+      next:document.getElementById('f-next').value.trim(),
+      notes:document.getElementById('f-notes').value.trim(),
+      progress:parseInt(document.getElementById('f-progress').value),
+    };
+    if (editId) {
+      const i=projects.findIndex(p=>p.id===editId);
+      projects[i]={...projects[i],...d};
+      toast('Project updated');
+      if (detailId===editId) openDetail(editId);
+    } else {
+      d.id=Date.now(); projects.push(d); toast('Project added');
+    }
+    persist(); closeModal();
+  }
+
+  function editP(id) { closeDetail(); setTimeout(()=>openModal(id),60); }
+
+  function delP(id) {
+    if (!confirm('Delete this project?')) return;
+    projects=projects.filter(p=>p.id!==id);
+    persist(); closeDetail(); toast('Project deleted');
+  }
+
+  function setSidebar(f,el) {
+    sF=f; tF='all';
+    document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.filter-btn')[0].classList.add('active');
+    const [t,s]=META[f]||['Projects',''];
+    document.getElementById('pg-title').textContent=t;
+    document.getElementById('pg-sub').textContent=s;
+    render();
+  }
+
+  function setTab(f,el) {
+    tF=f;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+    render();
+  }
+
+  function onSearch(q) { sq=q; render(); }
+
+  function exportCSV() {
+    const h=['Name','Status','Priority','Deadline','Stakeholder','Next Action','Progress %','Notes'];
+    const rows=projects.map(p=>[p.name,sLabel(p.status),p.priority,p.deadline||'',p.stakeholder||'',p.next||'',p.progress||0,p.notes||'']);
+    const csv=[h,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='projects.csv'; a.click();
+    toast('Exported as CSV');
+  }
+
+  let tt;
+  function toast(msg) {
+    const el=document.getElementById('toast');
+    el.textContent=msg; el.classList.add('show');
+    clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('show'),2400);
+  }
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){closeModal();closeDetail();}
+    if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openModal();}
+  });
+
+  render();
+</script>
+</body>
+</html>
